@@ -3,46 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TakeAway App</title>
+    <title>TakeAway - Carrito</title>
     <style>
         :root {
             --primary: #2c3e50;
             --secondary: #18bc9c;
-            --light: #ecf0f1;
+            --danger: #e74c3c;
+            --light: #f8f9fa;
         }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--light); margin: 0; display: flex; justify-content: center; padding: 20px; }
-        .card { background: white; width: 100%; max-width: 450px; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .header { background: var(--primary); color: white; padding: 20px; text-align: center; }
-        .form-body { padding: 25px; }
-        label { display: block; margin-top: 15px; font-size: 0.9em; color: #7f8c8d; font-weight: bold; }
-        input, select { width: 100%; padding: 12px; margin-top: 5px; border: 2px solid #dfe6e9; border-radius: 8px; outline: none; transition: 0.3s; }
-        input:focus { border-color: var(--secondary); }
-        .btn { background: var(--secondary); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 25px; transition: 0.3s; }
-        .btn:hover { background: #128f76; transform: translateY(-2px); }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #d1d8e0; margin: 0; padding: 10px; }
+        .card { background: white; max-width: 500px; margin: auto; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); overflow: hidden; }
+        .header { background: var(--primary); color: white; padding: 15px; text-align: center; }
+        .form-section { padding: 20px; border-bottom: 2px solid var(--light); }
+        label { display: block; font-size: 0.8em; font-weight: bold; color: #555; margin-top: 10px; }
+        input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        
+        .btn-add { background: var(--primary); color: white; border: none; padding: 12px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        .btn-send { background: var(--secondary); color: white; border: none; padding: 15px; width: 100%; border-radius: 5px; font-size: 1.1em; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        
+        /* Estilos del Carrito */
+        .carrito-container { padding: 20px; background: var(--light); }
+        .item-carrito { display: flex; justify-content: space-between; align-items: center; background: white; padding: 10px; margin-bottom: 8px; border-radius: 5px; border-left: 4px solid var(--secondary); font-size: 0.9em; }
+        .btn-remove { color: var(--danger); border: none; background: none; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <div class="header">
-        <h1>🍱 Comanda Digital</h1>
-    </div>
-    <form id="orderForm" class="form-body">
-        <label>NOMBRE COMPLETO</label>
-        <input type="text" id="nombre" required>
+    <div class="header"><h1>🛒 Mi Pedido</h1></div>
 
-        <label>TELÉFONO</label>
-        <input type="tel" id="telefono" required>
-
+    <div class="form-section">
+        <input type="text" id="nombre" placeholder="Nombre completo" required>
+        <input type="tel" id="telefono" placeholder="Teléfono">
         <label>HORA DE RECOGIDA</label>
-        <input type="time" id="hora" required>
+        <input type="time" id="hora">
+    </div>
 
-        <label>PRODUCTO</label>
+    <div class="form-section" style="background-color: #fff;">
+        <label>SELECCIONAR PRODUCTO</label>
         <select id="producto">
-            <option value="Ensaladilla">Ensaladilla</option>
-            <option value="Papa aliñada">Papa aliñada</option>
-            <option value="Calamar">Calamar</option>
-            <option value="Choco">Choco</option>
+            <optgroup label="Entrantes">
+                <option value="Ensaladilla">Ensaladilla</option>
+                <option value="Papa aliñada">Papa aliñada</option>
+            </optgroup>
+            <optgroup label="Pescados">
+                <option value="Calamar">Calamar</option>
+                <option value="Choco">Choco</option>
+                <option value="Adobo">Adobo</option>
+                <option value="Huevas">Huevas</option>
+            </optgroup>
         </select>
 
         <div style="display: flex; gap: 10px;">
@@ -55,45 +64,94 @@
                 <select id="peso">
                     <option value="250g">250g</option>
                     <option value="500g">500g</option>
+                    <option value="Ración">Ración</option>
                 </select>
             </div>
         </div>
+        <button type="button" class="btn-add" onclick="agregarAlCarrito()">+ Añadir al pedido</button>
+    </div>
 
-        <button type="submit" class="btn">Confirmar y Pedir</button>
-    </form>
+    <div class="carrito-container">
+        <h3 style="margin-top:0;">Resumen:</h3>
+        <div id="lista-carrito">
+            </div>
+        <button class="btn-send" onclick="enviarFinal()">Confirmar y Pedir</button>
+    </div>
 </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbwYXE1tfuo3bNsyhjFGWgxXLq0qdtBR8ULKa8YyrHny7xjkcQCH6Ym3jWLmYWnQrv2P/exec'; // <--- PEGA AQUÍ TU URL
-    const form = document.getElementById('orderForm');
+    let carrito = [];
+    const scriptURL = 'TU_URL_DE_APPS_SCRIPT'; // <--- Pon tu URL aquí
 
-    form.addEventListener('submit', e => {
-        e.preventDefault();
+    function agregarAlCarrito() {
+        const producto = document.getElementById('producto').value;
+        const cantidad = document.getElementById('cantidad').value;
+        const peso = document.getElementById('peso').value;
+
+        // Añadimos al array
+        carrito.push({ producto, cantidad, peso });
+        renderizarCarrito();
+    }
+
+    function renderizarCarrito() {
+        const contenedor = document.getElementById('lista-carrito');
+        contenedor.innerHTML = '';
+
+        carrito.forEach((item, index) => {
+            contenedor.innerHTML += `
+                <div class="item-carrito">
+                    <div>
+                        <strong>${item.cantidad}x</strong> ${item.producto} (${item.peso})
+                    </div>
+                    <button class="btn-remove" onclick="eliminarDelCarrito(${index})">✕</button>
+                </div>
+            `;
+        });
+    }
+
+    function eliminarDelCarrito(index) {
+        carrito.splice(index, 1);
+        renderizarCarrito();
+    }
+
+    async function enviarFinal() {
+        if (carrito.length === 0) return alert("El carrito está vacío");
         
+        const nombre = document.getElementById('nombre').value;
+        const telefono = document.getElementById('telefono').value;
+        const hora = document.getElementById('hora').value;
+
+        if (!nombre || !hora) return alert("Faltan datos del cliente");
+
+        // Preparamos el texto del pedido
+        let textoPedido = carrito.map(item => `${item.cantidad}x ${item.producto} (${item.peso})`).join(", ");
+
         const datos = {
-            nombre: document.getElementById('nombre').value,
-            telefono: document.getElementById('telefono').value,
-            hora: document.getElementById('hora').value,
-            producto: document.getElementById('producto').value,
-            cantidad: document.getElementById('cantidad').value,
-            peso: document.getElementById('peso').value
+            nombre,
+            telefono,
+            hora,
+            producto: textoPedido, // Enviamos toda la lista como un solo texto
+            cantidad: "Varios",
+            peso: "-"
         };
 
-        // 1. Guardar en Google Sheets
-        fetch(scriptURL, { 
-            method: 'POST', 
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(datos)
-        })
-        .then(() => {
+        // 1. Enviar a Google Sheets
+        try {
+            await fetch(scriptURL, { 
+                method: 'POST', 
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datos)
+            });
+            
             // 2. Enviar a WhatsApp
-            const mensaje = `*NUEVO PEDIDO*%0A---%0A*Nombre:* ${datos.nombre}%0A*Tlf:* ${datos.telefono}%0A*Hora:* ${datos.hora}%0A*Pedido:* ${datos.cantidad}x ${datos.producto} (${datos.peso})`;
-            const numNegocio = "34600000000"; // Cambia esto
-            window.location.href = `https://wa.me/${numNegocio}?text=${mensaje}`;
-        })
-        .catch(error => alert('Error al guardar: ' + error.message));
-    });
+            const msgWhatsApp = `*NUEVO PEDIDO*%0A*Cliente:* ${nombre}%0A*Recogida:* ${hora}%0A*Detalle:*%0A${textoPedido.replace(/, /g, "%0A")}`;
+            window.location.href = `https://wa.me/34600000000?text=${msgWhatsApp}`;
+            
+        } catch (e) {
+            alert("Error al conectar con la base de datos");
+        }
+    }
 </script>
 
 </body>
