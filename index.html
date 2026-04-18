@@ -86,7 +86,7 @@
 
 <script>
     let carrito = [];
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbyDgmOOqzgYd9cX43hermBBdaAtg8YRwDlsgqpSJJ0Xw4EGS6iZwmlYz7l68_GmQd8r/exec'; 
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyFnHxVbA7Y_V-z3zSE-5YS8XuRfkFVjVhNLuT-ZirCOtepmG0axQnGwbPw6pATWPfv/exec'; 
 
     function generarHoras() {
         const selectHora = document.getElementById('hora');
@@ -152,22 +152,21 @@
         btn.disabled = true;
         btn.innerText = "Procesando...";
 
-        // Formatear datos para la hoja
+        // Organizamos los datos en listas separadas por "|"
         let detalleProductos = carrito.map(i => i.producto).join(" | ");
         let detalleCantidades = carrito.map(i => i.cantidad).join(" | ");
-        let detallePesos = carrito.map(i => `${i.peso} (${i.notas})`).join(" | ");
+        let detallePesos = carrito.map(i => i.peso).join(" | ");
+        let detalleNotas = carrito.map(i => i.notas).join(" | ");
 
-      // Así es como se "empaquetan" los datos para enviarlos a la hoja
-let detallePesos = carrito.map(i => `${i.peso} (Nota: ${i.notas})`).join(" | ");
-
-const datos = {
-    nombre: nombre,
-    telefono: telefono,
-    hora: hora,
-    producto: detalleProductos,
-    cantidad: detalleCantidades,
-    peso: detallePesos // Aquí dentro van los pesos y las observaciones
-};
+        const datos = {
+            nombre: nombre,
+            telefono: telefono,
+            hora: hora,
+            producto: detalleProductos,
+            cantidad: detalleCantidades,
+            peso: detallePesos,
+            notas: detalleNotas // Ahora viaja como un campo independiente
+        };
 
         try {
             await fetch(scriptURL, { 
@@ -176,11 +175,13 @@ const datos = {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(datos)
             });
+            
             success.style.display = 'block';
             btn.style.display = 'none';
             document.getElementById('orderForm').reset();
             carrito = [];
             renderizarCarrito();
+            
             setTimeout(() => {
                 success.style.display = 'none';
                 btn.style.display = 'block';
