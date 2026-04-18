@@ -28,6 +28,10 @@
 
         /* Mensaje de éxito oculto inicialmente */
         #success-msg { display: none; text-align: center; padding: 20px; color: var(--secondary); font-weight: bold; }
+        .btn-send {
+    background: linear-gradient(135deg, #18bc9c 0%, #118d76 100%);
+    box-shadow: 0 4px 15px rgba(24, 188, 156, 0.3);
+}
     </style>
 </head>
 <body>
@@ -40,7 +44,8 @@
             <input type="text" id="nombre" placeholder="Tu Nombre" required>
             <input type="tel" id="telefono" placeholder="Tu Teléfono (Opcional)">
             <label>HORA DE RECOGIDA</label>
-            <input type="time" id="hora" required>
+            <select id="hora" required>
+                </select>
         </div>
 
         <div class="form-section">
@@ -89,6 +94,29 @@
     let carrito = [];
     // RECUERDA PONER TU URL DE APPS SCRIPT AQUÍ
     const scriptURL = 'https://script.google.com/macros/s/AKfycby40yqy1m7cI4BUNGxGK_IPX8eDbcLGxQ3B64omm9nM-xX9uRG8Sh8BTeOmkoy9lqwY/exec'; 
+    // Función para generar las horas de 20:00 a 23:45
+function generarHoras() {
+    const selectHora = document.getElementById('hora');
+    const inicio = 20 * 60; // 20:00 en minutos
+    const fin = 23 * 60 + 45; // 23:45 en minutos
+    const intervalo = 15; // cada 15 min
+
+    for (let min = inicio; min <= fin; min += intervalo) {
+        const hh = Math.floor(min / 60);
+        const mm = min % 60;
+        const horaFormateada = `${hh}:${mm === 0 ? '00' : mm}`;
+        
+        let opcion = document.createElement('option');
+        opcion.value = horaFormateada;
+        opcion.textContent = horaFormateada;
+        selectHora.appendChild(opcion);
+    }
+}
+
+// Llamamos a la función al cargar la página
+window.onload = generarHoras;
+    <label>OBSERVACIONES / ALERGIAS</label>
+<input type="text" id="notas" placeholder="Ej: Sin cebolla, alérgico a...">
 
     function agregarAlCarrito() {
         const producto = document.getElementById('producto').value;
