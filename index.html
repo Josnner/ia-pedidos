@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TakeAway App</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #18bc9c;
+            --light: #ecf0f1;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--light); margin: 0; display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; width: 100%; max-width: 450px; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .header { background: var(--primary); color: white; padding: 20px; text-align: center; }
+        .form-body { padding: 25px; }
+        label { display: block; margin-top: 15px; font-size: 0.9em; color: #7f8c8d; font-weight: bold; }
+        input, select { width: 100%; padding: 12px; margin-top: 5px; border: 2px solid #dfe6e9; border-radius: 8px; outline: none; transition: 0.3s; }
+        input:focus { border-color: var(--secondary); }
+        .btn { background: var(--secondary); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 25px; transition: 0.3s; }
+        .btn:hover { background: #128f76; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="header">
+        <h1>🍱 Comanda Digital</h1>
+    </div>
+    <form id="orderForm" class="form-body">
+        <label>NOMBRE COMPLETO</label>
+        <input type="text" id="nombre" required>
+
+        <label>TELÉFONO</label>
+        <input type="tel" id="telefono" required>
+
+        <label>HORA DE RECOGIDA</label>
+        <input type="time" id="hora" required>
+
+        <label>PRODUCTO</label>
+        <select id="producto">
+            <option value="Ensaladilla">Ensaladilla</option>
+            <option value="Papa aliñada">Papa aliñada</option>
+            <option value="Calamar">Calamar</option>
+            <option value="Choco">Choco</option>
+        </select>
+
+        <div style="display: flex; gap: 10px;">
+            <div style="flex: 1;">
+                <label>CANTIDAD</label>
+                <input type="number" id="cantidad" value="1" min="1">
+            </div>
+            <div style="flex: 1;">
+                <label>PESO</label>
+                <select id="peso">
+                    <option value="250g">250g</option>
+                    <option value="500g">500g</option>
+                </select>
+            </div>
+        </div>
+
+        <button type="submit" class="btn">Confirmar y Pedir</button>
+    </form>
+</div>
+
+<script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbwYXE1tfuo3bNsyhjFGWgxXLq0qdtBR8ULKa8YyrHny7xjkcQCH6Ym3jWLmYWnQrv2P/exec'; // <--- PEGA AQUÍ TU URL
+    const form = document.getElementById('orderForm');
+
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+        
+        const datos = {
+            nombre: document.getElementById('nombre').value,
+            telefono: document.getElementById('telefono').value,
+            hora: document.getElementById('hora').value,
+            producto: document.getElementById('producto').value,
+            cantidad: document.getElementById('cantidad').value,
+            peso: document.getElementById('peso').value
+        };
+
+        // 1. Guardar en Google Sheets
+        fetch(scriptURL, { 
+            method: 'POST', 
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datos)
+        })
+        .then(() => {
+            // 2. Enviar a WhatsApp
+            const mensaje = `*NUEVO PEDIDO*%0A---%0A*Nombre:* ${datos.nombre}%0A*Tlf:* ${datos.telefono}%0A*Hora:* ${datos.hora}%0A*Pedido:* ${datos.cantidad}x ${datos.producto} (${datos.peso})`;
+            const numNegocio = "34600000000"; // Cambia esto
+            window.location.href = `https://wa.me/${numNegocio}?text=${mensaje}`;
+        })
+        .catch(error => alert('Error al guardar: ' + error.message));
+    });
+</script>
+
+</body>
+</html>
