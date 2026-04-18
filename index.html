@@ -48,17 +48,8 @@
 
         <div class="form-section">
             <label>PRODUCTO</label>
-                <select id="producto">
-                    <option>Cargando menú...</option>
-                </select>
-                <optgroup label="Especialidades">
-                    <option value="Ensaladilla">Ensaladilla</option>
-                    <option value="Papa aliñada">Papa aliñada</option>
-                </optgroup>
-                <optgroup label="Frituras">
-                    <option value="Calamar">Calamar</option>
-                    <option value="Choco">Choco</option>
-                </optgroup>
+            <select id="producto">
+                <option>Cargando menú...</option>
             </select>
 
             <div style="display: flex; gap: 10px;">
@@ -71,6 +62,7 @@
                     <select id="peso">
                         <option value="250g">250g</option>
                         <option value="500g">500g</option>
+                        <option value="Ración">Ración</option>
                     </select>
                 </div>
             </div>
@@ -95,10 +87,9 @@
 
 <script>
     let carrito = [];
-    // RECUERDA CAMBIAR ESTA URL POR LA DE TU IMPLEMENTACIÓN (VERSIÓN NUEVA)
+    // URL DE TU IMPLEMENTACIÓN (Asegúrate de que sea la última versión del script)
     const scriptURL = 'https://script.google.com/macros/s/AKfycbx-wV0LlYTlP27u4G9GeJwgdp4lItnwLjSl16iWaVmfjXUDklCXL4uDn2qG8PoakfCP/exec'; 
 
-    // Generar horas de 20:00 a 23:45 cada 15 min
     function generarHoras() {
         const selectHora = document.getElementById('hora');
         for (let h = 20; h <= 23; h++) {
@@ -114,31 +105,31 @@
         }
     }
 
-   async function cargarProductos() {
-    const selectProd = document.getElementById('producto');
-    try {
-        const respuesta = await fetch(scriptURL); // El fetch por defecto es un "GET"
-        const productos = await respuesta.json();
-        
-        selectProd.innerHTML = ''; // Limpiar el "Cargando..."
-        
-        productos.forEach(nombre => {
-            let opcion = document.createElement('option');
-            opcion.value = nombre;
-            opcion.textContent = nombre;
-            selectProd.appendChild(opcion);
-        });
-    } catch (error) {
-        console.error("Error cargando productos:", error);
-        selectProd.innerHTML = '<option>Error al cargar menú</option>';
+    async function cargarProductos() {
+        const selectProd = document.getElementById('producto');
+        try {
+            // Hacemos la petición GET para traer los productos
+            const respuesta = await fetch(scriptURL); 
+            const productos = await respuesta.json();
+            
+            selectProd.innerHTML = ''; 
+            
+            productos.forEach(nombre => {
+                let opcion = document.createElement('option');
+                opcion.value = nombre;
+                opcion.textContent = nombre;
+                selectProd.appendChild(opcion);
+            });
+        } catch (error) {
+            console.error("Error cargando productos:", error);
+            selectProd.innerHTML = '<option>Error al cargar menú</option>';
+        }
     }
-}
 
-// Ahora el onload llama a las dos funciones
-window.onload = function() {
-    generarHoras();
-    cargarProductos();
-};
+    window.onload = function() {
+        generarHoras();
+        cargarProductos();
+    };
 
     function agregarAlCarrito() {
         const producto = document.getElementById('producto').value;
@@ -146,10 +137,13 @@ window.onload = function() {
         const peso = document.getElementById('peso').value;
         const notas = document.getElementById('notas').value || "-";
 
+        if(producto === "Cargando menú..." || producto === "Error al cargar menú") {
+            return alert("Espera a que cargue el menú.");
+        }
+
         carrito.push({ producto, cantidad, peso, notas });
         renderizarCarrito();
         
-        // Limpiamos solo el campo de notas y cantidad para el siguiente producto
         document.getElementById('notas').value = "";
         document.getElementById('cantidad').value = "1";
     }
@@ -193,7 +187,6 @@ window.onload = function() {
         btn.disabled = true;
         btn.innerText = "Enviando pedido...";
 
-        // Preparamos los datos concatenados por "|"
         let detalleProductos = carrito.map(i => i.producto).join(" | ");
         let detalleCantidades = carrito.map(i => i.cantidad).join(" | ");
         let detallePesos = carrito.map(i => i.peso).join(" | ");
@@ -217,7 +210,6 @@ window.onload = function() {
                 body: JSON.stringify(datos)
             });
             
-            // Éxito visual
             success.style.display = 'block';
             btn.style.display = 'none';
             document.getElementById('orderForm').reset();
