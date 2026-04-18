@@ -48,7 +48,9 @@
 
         <div class="form-section">
             <label>PRODUCTO</label>
-            <select id="producto">
+                <select id="producto">
+                    <option>Cargando menú...</option>
+                </select>
                 <optgroup label="Especialidades">
                     <option value="Ensaladilla">Ensaladilla</option>
                     <option value="Papa aliñada">Papa aliñada</option>
@@ -112,7 +114,31 @@
         }
     }
 
-    window.onload = generarHoras;
+   async function cargarProductos() {
+    const selectProd = document.getElementById('producto');
+    try {
+        const respuesta = await fetch(scriptURL); // El fetch por defecto es un "GET"
+        const productos = await respuesta.json();
+        
+        selectProd.innerHTML = ''; // Limpiar el "Cargando..."
+        
+        productos.forEach(nombre => {
+            let opcion = document.createElement('option');
+            opcion.value = nombre;
+            opcion.textContent = nombre;
+            selectProd.appendChild(opcion);
+        });
+    } catch (error) {
+        console.error("Error cargando productos:", error);
+        selectProd.innerHTML = '<option>Error al cargar menú</option>';
+    }
+}
+
+// Ahora el onload llama a las dos funciones
+window.onload = function() {
+    generarHoras();
+    cargarProductos();
+};
 
     function agregarAlCarrito() {
         const producto = document.getElementById('producto').value;
