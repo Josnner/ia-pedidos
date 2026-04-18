@@ -86,7 +86,7 @@
 
 <script>
     let carrito = [];
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxmtOF29dSlSWeiM8PfN0pzBiH23HxKdsy5VY_h0RxTcJ34Io_2g7bn0D8jR_nmS3qw/exec'; 
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyDgmOOqzgYd9cX43hermBBdaAtg8YRwDlsgqpSJJ0Xw4EGS6iZwmlYz7l68_GmQd8r/exec'; 
 
     function generarHoras() {
         const selectHora = document.getElementById('hora');
@@ -157,14 +157,17 @@
         let detalleCantidades = carrito.map(i => i.cantidad).join(" | ");
         let detallePesos = carrito.map(i => `${i.peso} (${i.notas})`).join(" | ");
 
-        const datos = {
-            nombre,
-            telefono,
-            hora,
-            producto: detalleProductos,
-            cantidad: detalleCantidades,
-            peso: detallePesos
-        };
+      // Así es como se "empaquetan" los datos para enviarlos a la hoja
+let detallePesos = carrito.map(i => `${i.peso} (Nota: ${i.notas})`).join(" | ");
+
+const datos = {
+    nombre: nombre,
+    telefono: telefono,
+    hora: hora,
+    producto: detalleProductos,
+    cantidad: detalleCantidades,
+    peso: detallePesos // Aquí dentro van los pesos y las observaciones
+};
 
         try {
             await fetch(scriptURL, { 
