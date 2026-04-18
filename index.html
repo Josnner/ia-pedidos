@@ -19,19 +19,13 @@
         input, select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         
         .btn-add { background: var(--primary); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; }
-        .btn-send { background: var(--secondary); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 1.1em; font-weight: bold; cursor: pointer; margin-top: 20px; width: 100%; }
-        .btn-send:disabled { background: #95a5a6; cursor: not-allowed; }
+        .btn-send { background: linear-gradient(135deg, #18bc9c 0%, #118d76 100%); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 1.1em; font-weight: bold; cursor: pointer; margin-top: 20px; width: 100%; box-shadow: 0 4px 15px rgba(24, 188, 156, 0.3); }
+        .btn-send:disabled { background: #95a5a6; cursor: not-allowed; box-shadow: none; }
         
         .carrito-container { padding: 20px; background: var(--light); }
         .item-carrito { display: flex; justify-content: space-between; align-items: center; background: white; padding: 10px; margin-bottom: 8px; border-radius: 8px; border-left: 4px solid var(--secondary); font-size: 0.9em; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .btn-remove { color: var(--danger); border: none; background: none; font-size: 1.2em; cursor: pointer; }
-
-        /* Mensaje de éxito oculto inicialmente */
         #success-msg { display: none; text-align: center; padding: 20px; color: var(--secondary); font-weight: bold; }
-        .btn-send {
-    background: linear-gradient(135deg, #18bc9c 0%, #118d76 100%);
-    box-shadow: 0 4px 15px rgba(24, 188, 156, 0.3);
-}
     </style>
 </head>
 <body>
@@ -44,8 +38,7 @@
             <input type="text" id="nombre" placeholder="Tu Nombre" required>
             <input type="tel" id="telefono" placeholder="Tu Teléfono (Opcional)">
             <label>HORA DE RECOGIDA</label>
-            <select id="hora" required>
-                </select>
+            <select id="hora" required></select>
         </div>
 
         <div class="form-section">
@@ -75,76 +68,70 @@
                     </select>
                 </div>
             </div>
+            
+            <label>OBSERVACIONES / ALERGIAS</label>
+            <input type="text" id="notas" placeholder="Ej: Sin cebolla...">
+            
             <button type="button" class="btn-add" onclick="agregarAlCarrito()">+ Añadir al pedido</button>
         </div>
     </form>
 
     <div class="carrito-container">
         <h3 style="margin-top:0;">Resumen del pedido:</h3>
-        <div id="lista-carrito">
-            </div>
-        
+        <div id="lista-carrito"></div>
         <div id="success-msg">✅ ¡Pedido enviado correctamente!</div>
-        
         <button id="btnConfirmar" class="btn-send" onclick="enviarFinal()">Confirmar y Finalizar</button>
     </div>
 </div>
 
 <script>
     let carrito = [];
-    // RECUERDA PONER TU URL DE APPS SCRIPT AQUÍ
-    const scriptURL = 'https://script.google.com/macros/s/AKfycby40yqy1m7cI4BUNGxGK_IPX8eDbcLGxQ3B64omm9nM-xX9uRG8Sh8BTeOmkoy9lqwY/exec'; 
-    // Función para generar las horas de 20:00 a 23:45
-function generarHoras() {
-    const selectHora = document.getElementById('hora');
-    const inicio = 20 * 60; // 20:00 en minutos
-    const fin = 23 * 60 + 45; // 23:45 en minutos
-    const intervalo = 15; // cada 15 min
+    const scriptURL = 'TU_URL_DE_APPS_SCRIPT_AQUI'; 
 
-    for (let min = inicio; min <= fin; min += intervalo) {
-        const hh = Math.floor(min / 60);
-        const mm = min % 60;
-        const horaFormateada = `${hh}:${mm === 0 ? '00' : mm}`;
-        
-        let opcion = document.createElement('option');
-        opcion.value = horaFormateada;
-        opcion.textContent = horaFormateada;
-        selectHora.appendChild(opcion);
+    function generarHoras() {
+        const selectHora = document.getElementById('hora');
+        for (let h = 20; h <= 23; h++) {
+            for (let m = 0; m < 60; m += 15) {
+                if (h === 23 && m > 45) break; 
+                const hh = h.toString().padStart(2, '0');
+                const mm = m.toString().padStart(2, '0');
+                let opcion = document.createElement('option');
+                opcion.value = `${hh}:${mm}`;
+                opcion.textContent = `${hh}:${mm}`;
+                selectHora.appendChild(opcion);
+            }
+        }
     }
-}
 
-// Llamamos a la función al cargar la página
-window.onload = generarHoras;
-    <label>OBSERVACIONES / ALERGIAS</label>
-<input type="text" id="notas" placeholder="Ej: Sin cebolla, alérgico a...">
+    window.onload = generarHoras;
 
     function agregarAlCarrito() {
         const producto = document.getElementById('producto').value;
         const cantidad = document.getElementById('cantidad').value;
         const peso = document.getElementById('peso').value;
+        const notas = document.getElementById('notas').value || "-";
 
-        carrito.push({ producto, cantidad, peso });
+        carrito.push({ producto, cantidad, peso, notas });
         renderizarCarrito();
+        document.getElementById('notas').value = ""; // Limpiar notas tras añadir
     }
 
     function renderizarCarrito() {
         const contenedor = document.getElementById('lista-carrito');
         contenedor.innerHTML = '';
-
         if (carrito.length === 0) {
             contenedor.innerHTML = '<p style="color:#7f8c8d; font-style:italic;">No hay productos aún.</p>';
             return;
         }
-
         carrito.forEach((item, index) => {
             contenedor.innerHTML += `
                 <div class="item-carrito">
                     <div>
                         <strong>${item.cantidad}x</strong> ${item.producto} <small>(${item.peso})</small>
+                        <div style="font-size:0.8em; color:gray;">Nota: ${item.notas}</div>
                     </div>
                     <button class="btn-remove" onclick="eliminarDelCarrito(${index})">✕</button>
-                </div>
-            `;
+                </div>`;
         });
     }
 
@@ -155,30 +142,28 @@ window.onload = generarHoras;
 
     async function enviarFinal() {
         if (carrito.length === 0) return alert("Añade al menos un producto.");
-        
         const nombre = document.getElementById('nombre').value;
         const hora = document.getElementById('hora').value;
         const telefono = document.getElementById('telefono').value || "No indicado";
-
         if (!nombre || !hora) return alert("Nombre y hora son obligatorios.");
 
         const btn = document.getElementById('btnConfirmar');
         const success = document.getElementById('success-msg');
-        
-        // Bloquear botón para evitar duplicados
         btn.disabled = true;
         btn.innerText = "Procesando...";
 
-        // Formatear pedido para la celda de Google Sheets
-        let detallePedido = carrito.map(i => `${i.cantidad}x ${i.producto}(${i.peso})`).join(" | ");
+        // Formatear datos para la hoja
+        let detalleProductos = carrito.map(i => i.producto).join(" | ");
+        let detalleCantidades = carrito.map(i => i.cantidad).join(" | ");
+        let detallePesos = carrito.map(i => `${i.peso} (${i.notas})`).join(" | ");
 
         const datos = {
-            nombre: nombre,
-            telefono: telefono,
-            hora: hora,
-            producto: detallePedido,
-            cantidad: carrito.length, // Número total de items
-            peso: "-"
+            nombre,
+            telefono,
+            hora,
+            producto: detalleProductos,
+            cantidad: detalleCantidades,
+            peso: detallePesos
         };
 
         try {
@@ -188,29 +173,22 @@ window.onload = generarHoras;
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(datos)
             });
-
-            // Acción tras el éxito
             success.style.display = 'block';
             btn.style.display = 'none';
             document.getElementById('orderForm').reset();
             carrito = [];
             renderizarCarrito();
-
-            // Ocultar mensaje de éxito tras 5 segundos para nuevo pedido
             setTimeout(() => {
                 success.style.display = 'none';
                 btn.style.display = 'block';
                 btn.disabled = false;
                 btn.innerText = "Confirmar y Finalizar";
             }, 5000);
-
         } catch (error) {
-            alert("Error de conexión. Inténtalo de nuevo.");
+            alert("Error de conexión.");
             btn.disabled = false;
-            btn.innerText = "Confirmar y Finalizar";
         }
     }
 </script>
-
 </body>
 </html>
