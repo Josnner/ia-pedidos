@@ -19,7 +19,12 @@
         input, select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         
         .btn-add { background: var(--primary); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; }
-        .btn-send { background: linear-gradient(135deg, #18bc9c 0%, #118d76 100%); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 1.1em; font-weight: bold; cursor: pointer; margin-top: 20px; width: 100%; box-shadow: 0 4px 15px rgba(24, 188, 156, 0.3); }
+        .btn-send { 
+            background: linear-gradient(135deg, #18bc9c 0%, #118d76 100%); 
+            color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; 
+            font-size: 1.1em; font-weight: bold; cursor: pointer; margin-top: 20px; 
+            box-shadow: 0 4px 15px rgba(24, 188, 156, 0.3); 
+        }
         .btn-send:disabled { background: #95a5a6; cursor: not-allowed; box-shadow: none; }
         
         .carrito-container { padding: 20px; background: var(--light); }
@@ -70,7 +75,7 @@
             </div>
             
             <label>OBSERVACIONES / ALERGIAS</label>
-            <input type="text" id="notas" placeholder="Ej: Sin cebolla...">
+            <input type="text" id="notas" placeholder="Ej: Sin cebolla, muy frito...">
             
             <button type="button" class="btn-add" onclick="agregarAlCarrito()">+ Añadir al pedido</button>
         </div>
@@ -78,7 +83,10 @@
 
     <div class="carrito-container">
         <h3 style="margin-top:0;">Resumen del pedido:</h3>
-        <div id="lista-carrito"></div>
+        <div id="lista-carrito">
+            <p style="color:#7f8c8d; font-style:italic;">No hay productos aún.</p>
+        </div>
+        
         <div id="success-msg">✅ ¡Pedido enviado correctamente!</div>
         <button id="btnConfirmar" class="btn-send" onclick="enviarFinal()">Confirmar y Finalizar</button>
     </div>
@@ -86,8 +94,10 @@
 
 <script>
     let carrito = [];
+    // RECUERDA CAMBIAR ESTA URL POR LA DE TU IMPLEMENTACIÓN (VERSIÓN NUEVA)
     const scriptURL = 'https://script.google.com/macros/s/AKfycbwTAF_QV-3sbw5-pKMZMsnd_iWwb0IRk2dLjrKpNhUbChMT3bir2t8UDG8mJBiSxKaG/exec'; 
 
+    // Generar horas de 20:00 a 23:45 cada 15 min
     function generarHoras() {
         const selectHora = document.getElementById('hora');
         for (let h = 20; h <= 23; h++) {
@@ -113,7 +123,10 @@
 
         carrito.push({ producto, cantidad, peso, notas });
         renderizarCarrito();
-        document.getElementById('notas').value = ""; // Limpiar notas tras añadir
+        
+        // Limpiamos solo el campo de notas y cantidad para el siguiente producto
+        document.getElementById('notas').value = "";
+        document.getElementById('cantidad').value = "1";
     }
 
     function renderizarCarrito() {
@@ -142,17 +155,20 @@
 
     async function enviarFinal() {
         if (carrito.length === 0) return alert("Añade al menos un producto.");
+        
         const nombre = document.getElementById('nombre').value;
         const hora = document.getElementById('hora').value;
         const telefono = document.getElementById('telefono').value || "No indicado";
+        
         if (!nombre || !hora) return alert("Nombre y hora son obligatorios.");
 
         const btn = document.getElementById('btnConfirmar');
         const success = document.getElementById('success-msg');
+        
         btn.disabled = true;
-        btn.innerText = "Procesando...";
+        btn.innerText = "Enviando pedido...";
 
-        // Organizamos los datos en listas separadas por "|"
+        // Preparamos los datos concatenados por "|"
         let detalleProductos = carrito.map(i => i.producto).join(" | ");
         let detalleCantidades = carrito.map(i => i.cantidad).join(" | ");
         let detallePesos = carrito.map(i => i.peso).join(" | ");
@@ -165,7 +181,7 @@
             producto: detalleProductos,
             cantidad: detalleCantidades,
             peso: detallePesos,
-            notas: detalleNotas // Ahora viaja como un campo independiente
+            notas: detalleNotas
         };
 
         try {
@@ -176,6 +192,7 @@
                 body: JSON.stringify(datos)
             });
             
+            // Éxito visual
             success.style.display = 'block';
             btn.style.display = 'none';
             document.getElementById('orderForm').reset();
@@ -188,11 +205,14 @@
                 btn.disabled = false;
                 btn.innerText = "Confirmar y Finalizar";
             }, 5000);
+            
         } catch (error) {
-            alert("Error de conexión.");
+            alert("Error al conectar con la base de datos.");
             btn.disabled = false;
+            btn.innerText = "Confirmar y Finalizar";
         }
     }
 </script>
+
 </body>
 </html>
