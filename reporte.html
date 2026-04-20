@@ -2,64 +2,91 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Ticket de Cocina</title>
+    <title>Centro de Reportes - TakeAway</title>
     <style>
-        body { font-family: 'Courier New', Courier, monospace; padding: 20px; background: #fff; }
-        .ticket { max-width: 400px; margin: auto; border: 1px solid #ccc; padding: 20px; }
-        .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 20px; }
-        table { width: 100%; font-size: 1.2em; }
-        th { text-align: left; }
-        td { padding: 8px 0; border-bottom: 1px solid #eee; }
-        .total-row { font-weight: bold; font-size: 1.4em; }
-        .btn-print { background: #000; color: #fff; padding: 10px; width: 100%; border: none; cursor: pointer; margin-top: 20px; }
-        @media print { .btn-print { display: none; } }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .menu-reportes { display: flex; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
+        .btn-menu { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-menu:hover { background: #2980b9; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: #2c3e50; color: white; padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #ddd; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        .badge { background: #e74c3c; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.9em; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="ticket">
-    <div class="header">
-        <h1>REPORTE COCINA</h1>
-        <h2 id="hora-reporte">--:--</h2>
-        <p id="fecha-reporte"></p>
-    </div>
+<div class="container">
+    <h1>📊 Centro de Control de Reportes</h1>
     
-    <table>
-        <thead>
-            <tr>
-                <th>PRODUCTO</th>
-                <th style="text-align: right;">CANT.</th>
-            </tr>
-        </thead>
-        <tbody id="tabla-cuerpo">
-            </tbody>
-    </table>
+    <div class="menu-reportes">
+        <button class="btn-menu" onclick="reporteTramos()">Reporte 1: Pedidos por Tramo (15m)</button>
+        </div>
 
-    <button class="btn-print" onclick="window.print()">IMPRIMIR TICKET</button>
+    <div id="resultado">
+        <p>Selecciona un reporte arriba para visualizar los datos.</p>
+    </div>
 </div>
 
 <script>
-    window.onload = () => {
-        // Recuperamos los datos guardados
-        const rawData = localStorage.getItem('reporteCocina');
-        if(!rawData) {
-            document.body.innerHTML = "<h1>No hay datos para mostrar</h1>";
-            return;
-        }
+    // URL de tu Script de Google (la misma del index.html)
+    const scriptURL = 'TU_URL_DE_DESPLIEGUE_AQUI';
 
-        const data = JSON.parse(rawData);
-        document.getElementById('hora-reporte').innerText = "TRAMO: " + data.hora;
-        document.getElementById('fecha-reporte').innerText = data.fecha;
+    async function reporteTramos() {
+        const div = document.getElementById('resultado');
+        div.innerHTML = "<h3>Cargando datos...</h3>";
 
-        const cuerpo = document.getElementById('tabla-cuerpo');
-        for(const [prod, cant] of Object.entries(data.items)) {
-            cuerpo.innerHTML += `
-                <tr>
-                    <td>${prod}</td>
-                    <td style="text-align: right;" class="total-row">${cant}</td>
-                </tr>`;
+        try {
+            const res = await fetch(`${scriptURL}?action=datosCompletos`);
+            const data = await res.json();
+
+            // Objeto para agrupar: { "20:00": 5, "20:15": 3... }
+            let tramos = {};
+
+            data.forEach(fila => {
+                let hora = fila[2]; // Columna C: Hora
+                let numPedido = fila[7]; // Columna H: Nº Pedido
+                
+                // Usamos una clave única (Hora + Nº Pedido) para no contar 
+                // varias veces el mismo pedido si tiene varios productos
+                let clavePedido = hora + "-" + numPedido;
+                
+                if (!tramos[hora]) {
+                    tramos[hora] = new Set(); 
+                }
+                tramos[hora].add(numPedido);
+            });
+
+            // Generar la tabla
+            let html = `<h2>Cantidad de Pedidos por Tramo</h2>
+                        <table>
+                            <tr>
+                                <th>Tramo Horario</th>
+                                <th>Total Pedidos</th>
+                            </tr>`;
+
+            // Ordenamos las horas
+            const horasOrdenadas = Object.keys(tramos).sort();
+
+            horasOrdenadas.forEach(h => {
+                html += `<tr>
+                            <td><strong>${h}</strong></td>
+                            <td><span class="badge">${tramos[h].size}</span> pedidos</td>
+                         </tr>`;
+            });
+
+            html += `</table>`;
+            div.innerHTML = html;
+
+        } catch (e) {
+            div.innerHTML = "<p style='color:red;'>Error al obtener datos. Revisa la consola.</p>";
+            console.error(e);
         }
-    };
+    }
 </script>
 </body>
 </html>
