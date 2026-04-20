@@ -7,15 +7,22 @@
         body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
         .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-        .menu-reportes { display: flex; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
-        .btn-menu { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .menu-reportes { background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 30px; border: 1px solid #e1e4e8; }
+        .controles { display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 20px; }
+        .control-group { display: flex; flex-direction: column; }
+        label { font-size: 0.8em; font-weight: bold; margin-bottom: 5px; color: #666; }
+        select { padding: 8px; border-radius: 5px; border: 1px solid #ccc; background: white; }
+        
+        .btn-menu { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .btn-menu:hover { background: #2980b9; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; animation: fadeIn 0.5s; }
         th { background: #2c3e50; color: white; padding: 12px; text-align: left; }
         td { padding: 12px; border-bottom: 1px solid #ddd; }
         tr:nth-child(even) { background: #f9f9f9; }
-        .badge { background: #e74c3c; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.9em; font-weight: bold; }
+        .badge { background: #e74c3c; color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.9em; font-weight: bold; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -24,58 +31,93 @@
     <h1>📊 Centro de Control de Reportes</h1>
     
     <div class="menu-reportes">
-        <button class="btn-menu" onclick="reporteTramos()">Reporte 1: Pedidos por Tramo (15m)</button>
+        <h3>Reporte 1: Cantidad de Pedidos</h3>
+        <div class="controles">
+            <div class="control-group">
+                <label>DESDE LAS:</label>
+                <select id="horaInicio"></select>
+            </div>
+            <div class="control-group">
+                <label>HASTA LAS:</label>
+                <select id="horaFin"></select>
+            </div>
+            <button class="btn-menu" onclick="reporteTramos()">Generar Reporte</button>
         </div>
+    </div>
 
     <div id="resultado">
-        <p>Selecciona un reporte arriba para visualizar los datos.</p>
+        <p style="color: #888; text-align: center;">Selecciona el rango horario y pulsa el botón.</p>
     </div>
 </div>
 
 <script>
-    // URL de tu Script de Google (la misma del index.html)
+    // URL de tu Script de Google
     const scriptURL = 'TU_URL_DE_DESPLIEGUE_AQUI';
 
+    // Generar horas en los selectores al cargar
+    function poblarSelectores() {
+        const inicio = document.getElementById('horaInicio');
+        const fin = document.getElementById('horaFin');
+        
+        for(let h=20; h<=23; h++) {
+            for(let m=0; m<60; m+=15) {
+                if(h==23 && m>45) break;
+                let t = `${h}:${m==0?'00':m}`;
+                inicio.add(new Option(t, t));
+                fin.add(new Option(t, t));
+            }
+        }
+        // Ponemos por defecto un rango lógico
+        fin.value = "23:45";
+    }
+
+    window.onload = poblarSelectores;
+
     async function reporteTramos() {
+        const hInicio = document.getElementById('horaInicio').value;
+        const hFin = document.getElementById('horaFin').value;
         const div = document.getElementById('resultado');
-        div.innerHTML = "<h3>Cargando datos...</h3>";
+        
+        div.innerHTML = "<h3>Cargando datos del servidor...</h3>";
 
         try {
             const res = await fetch(`${scriptURL}?action=datosCompletos`);
             const data = await res.json();
 
-            // Objeto para agrupar: { "20:00": 5, "20:15": 3... }
             let tramos = {};
 
             data.forEach(fila => {
                 let hora = fila[2]; // Columna C: Hora
                 let numPedido = fila[7]; // Columna H: Nº Pedido
                 
-                // Usamos una clave única (Hora + Nº Pedido) para no contar 
-                // varias veces el mismo pedido si tiene varios productos
-                let clavePedido = hora + "-" + numPedido;
-                
-                if (!tramos[hora]) {
-                    tramos[hora] = new Set(); 
+                // Filtro de rango: Solo si la hora está entre inicio y fin
+                if (hora >= hInicio && hora <= hFin) {
+                    if (!tramos[hora]) {
+                        tramos[hora] = new Set(); 
+                    }
+                    tramos[hora].add(numPedido);
                 }
-                tramos[hora].add(numPedido);
             });
 
-            // Generar la tabla
-            let html = `<h2>Cantidad de Pedidos por Tramo</h2>
+            const horasOrdenadas = Object.keys(tramos).sort();
+
+            if (horasOrdenadas.length === 0) {
+                div.innerHTML = `<p style="text-align:center; padding:20px; background:#fff3cd; color:#856404; border-radius:8px;">
+                                 No se encontraron pedidos entre las ${hInicio} y las ${hFin}</p>`;
+                return;
+            }
+
+            let html = `<h2>Resumen desde ${hInicio} hasta ${hFin}</h2>
                         <table>
                             <tr>
                                 <th>Tramo Horario</th>
-                                <th>Total Pedidos</th>
+                                <th>Total Pedidos Realizados</th>
                             </tr>`;
-
-            // Ordenamos las horas
-            const horasOrdenadas = Object.keys(tramos).sort();
 
             horasOrdenadas.forEach(h => {
                 html += `<tr>
                             <td><strong>${h}</strong></td>
-                            <td><span class="badge">${tramos[h].size}</span> pedidos</td>
+                            <td><span class="badge">${tramos[h].size}</span> clientes atendidos</td>
                          </tr>`;
             });
 
@@ -83,8 +125,7 @@
             div.innerHTML = html;
 
         } catch (e) {
-            div.innerHTML = "<p style='color:red;'>Error al obtener datos. Revisa la consola.</p>";
-            console.error(e);
+            div.innerHTML = "<p style='color:red;'>Error de conexión con Google Sheets.</p>";
         }
     }
 </script>
