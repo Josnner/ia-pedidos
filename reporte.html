@@ -6,36 +6,37 @@
     <title>Centro de Reportes - TakeAway</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-top: 0; }
+        .container { max-width: 700px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-top: 0; text-align: center; }
         
         .menu-reportes { background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 25px; border: 1px solid #e1e4e8; }
-        .controles { display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 20px; }
-        .control-group { display: flex; flex-direction: column; }
+        .controles { display: flex; gap: 15px; justify-content: center; margin-bottom: 20px; }
+        .control-group { display: flex; flex-direction: column; width: 45%; }
         label { font-size: 0.75rem; font-weight: bold; margin-bottom: 5px; color: #666; }
-        select { padding: 10px; border-radius: 6px; border: 1px solid #ccc; background: white; min-width: 120px; }
+        select { padding: 12px; border-radius: 6px; border: 1px solid #ccc; background: white; font-size: 1rem; }
         
-        .botones-grid { display: flex; gap: 10px; flex-wrap: wrap; }
-        .btn { border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; color: white; }
+        /* Botones en vertical */
+        .botones-grid { display: flex; flex-direction: column; gap: 12px; }
+        .btn { border: none; padding: 15px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; color: white; font-size: 1rem; width: 100%; }
         .btn-blue { background: #3498db; }
         .btn-green { background: #27ae60; }
-        .btn:hover { opacity: 0.8; transform: translateY(-1px); }
+        .btn:hover { opacity: 0.9; transform: scale(1.01); }
         
         #resultado { margin-top: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; border-radius: 8px; overflow: hidden; }
         th { background: #2c3e50; color: white; padding: 12px; text-align: left; }
         td { padding: 12px; border-bottom: 1px solid #ddd; }
         tr:nth-child(even) { background: #fcfcfc; }
         
         .error-box { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; border: 1px solid #f5c6cb; text-align: center; font-weight: bold; }
-        .badge { background: #3498db; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.9em; }
-        .total-qty { font-weight: bold; color: #27ae60; font-size: 1.1em; }
+        .badge { background: #3498db; color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.9em; }
+        .total-qty { font-weight: bold; color: #2c3e50; font-size: 1.2em; text-align: right; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>📊 Centro de Reportes</h1>
+    <h1>📊 Control de Cocina</h1>
     
     <div class="menu-reportes">
         <div class="controles">
@@ -50,18 +51,19 @@
         </div>
         
         <div class="botones-grid">
-            <button class="btn btn-blue" onclick="ejecutarReporte('pedidos')">Nº de Pedidos por rango de horas</button><br>
-            <button class="btn btn-green" onclick="ejecutarReporte('mercancia')">Peso por producto por rango de horas</button>
+            <button class="btn btn-blue" onclick="ejecutarReporte('pedidos')">1. Cantidad de Pedidos (Tickets)</button>
+            <button class="btn btn-green" onclick="ejecutarReporte('mercancia')">2. Peso Total por Producto (Gramos/Kg)</button>
         </div>
     </div>
 
     <div id="resultado">
-        <p style="color: #888; text-align: center;">Configura el rango y elige un reporte.</p>
+        <p style="color: #888; text-align: center;">Selecciona el rango y el tipo de informe.</p>
     </div>
 </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbyxrlXh5-ShVWxM0BDL5yjkM-rZlQ5Q6vjpM9Iz0MNHdAP8SZx_Tmb9eWlFwy3n-4_p/exec'; // <--- CAMBIA ESTO
+    // RECUERDA PONER TU URL AQUÍ
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyxrlXh5-ShVWxM0BDL5yjkM-rZlQ5Q6vjpM9Iz0MNHdAP8SZx_Tmb9eWlFwy3n-4_p/exec'; 
 
     function poblarSelectores() {
         const inicio = document.getElementById('horaInicio');
@@ -84,16 +86,15 @@
         const hFin = document.getElementById('horaFin').value;
         const div = document.getElementById('resultado');
 
-        // VALIDACIÓN DE RANGO
         const numInicio = parseInt(hInicio.replace(':', ''));
         const numFin = parseInt(hFin.replace(':', ''));
 
         if (numInicio > numFin) {
-            div.innerHTML = `<div class="error-box">⚠️ La hora de INICIO (${hInicio}) no puede ser mayor que la de FIN (${hFin}).</div>`;
+            div.innerHTML = `<div class="error-box">⚠️ La hora de INICIO no puede ser posterior a la de FIN.</div>`;
             return;
         }
 
-        div.innerHTML = "<h3>Consultando datos...</h3>";
+        div.innerHTML = "<h3 style='text-align:center;'>Buscando en la base de datos...</h3>";
 
         try {
             const res = await fetch(`${scriptURL}?action=datosCompletos`);
@@ -104,9 +105,8 @@
             } else if (tipo === 'mercancia') {
                 generarReporteMercancia(data, hInicio, hFin);
             }
-
         } catch (e) {
-            div.innerHTML = "<div class='error-box'>Error de conexión con Google Sheets.</div>";
+            div.innerHTML = "<div class='error-box'>Error de conexión. Verifica la URL del script.</div>";
         }
     }
 
@@ -123,81 +123,62 @@
 
         const horas = Object.keys(tramos).sort();
         if(horas.length === 0) { 
-            document.getElementById('resultado').innerHTML = "<p>No hay pedidos en este rango.</p>";
+            document.getElementById('resultado').innerHTML = "<p style='text-align:center;'>No hay pedidos registrados en este horario.</p>";
             return; 
         }
 
-        let html = `<h2>📦 Cantidad de Pedidos por Tramo</h2><table><tr><th>Hora</th><th>Total Clientes</th></tr>`;
+        let html = `<h2>Tickets por Tramo</h2><table><tr><th>Hora</th><th>Nº Pedidos</th></tr>`;
         horas.forEach(h => {
             html += `<tr><td><strong>${h}</strong></td><td><span class="badge">${tramos[h].size} pedidos</span></td></tr>`;
         });
         document.getElementById('resultado').innerHTML = html + "</table>";
     }
 
-function generarReporteMercancia(data, hInicio, hFin) {
-    let totalesPeso = {}; // Para sumar gramos/kilos totales
-    let totalesUnid = {}; // Para saber cuántos envases salen
+    function generarReporteMercancia(data, hInicio, hFin) {
+        let totalesPeso = {}; 
+        let totalesUnid = {}; 
 
-    data.forEach(fila => {
-        let hora = fila[2];
-        if (hora >= hInicio && hora <= hFin) {
-            let producto = fila[3]; // Columna D
-            let cantidad = parseFloat(fila[4]) || 0; // Columna E
-            let pesoTexto = fila[5].toString().toLowerCase(); // Columna F (ej: "250g" o "Ración")
+        data.forEach(fila => {
+            let hora = fila[2];
+            if (hora >= hInicio && hora <= hFin) {
+                let producto = fila[3];
+                let cantidad = parseFloat(fila[4]) || 0;
+                let pesoTexto = fila[5].toString().toLowerCase();
 
-            // Extraer el valor numérico del peso (si dice "250g" saca 250)
-            let valorPeso = 0;
-            if (pesoTexto.includes("250")) valorPeso = 250;
-            else if (pesoTexto.includes("500")) valorPeso = 500;
-            else if (pesoTexto.includes("ración") || pesoTexto.includes("racion")) valorPeso = 1; // Las raciones las contamos por unidad
+                let valorPeso = 0;
+                if (pesoTexto.includes("250")) valorPeso = 250;
+                else if (pesoTexto.includes("500")) valorPeso = 500;
+                else if (pesoTexto.includes("ración") || pesoTexto.includes("racion")) valorPeso = 1;
 
-            let clave = producto;
-            
-            // Si es por gramos, sumamos el peso total
-            if (valorPeso > 1) {
-                let totalGramos = cantidad * valorPeso;
-                totalesPeso[clave] = (totalesPeso[clave] || 0) + totalGramos;
-            } else {
-                // Si es ración, sumamos unidades
-                totalesUnid[clave] = (totalesUnid[clave] || 0) + cantidad;
+                if (valorPeso > 1) {
+                    totalesPeso[producto] = (totalesPeso[producto] || 0) + (cantidad * valorPeso);
+                } else {
+                    totalesUnid[producto] = (totalesUnid[producto] || 0) + cantidad;
+                }
             }
-        }
-    });
+        });
 
-    const productos = [...new Set([...Object.keys(totalesPeso), ...Object.keys(totalesUnid)])].sort();
-    
-    if(productos.length === 0) { 
-        document.getElementById('resultado').innerHTML = "<p>No hay mercancía en este rango.</p>";
-        return; 
+        const productos = [...new Set([...Object.keys(totalesPeso), ...Object.keys(totalesUnid)])].sort();
+        
+        if(productos.length === 0) { 
+            document.getElementById('resultado').innerHTML = "<p style='text-align:center;'>No hay mercancía para este rango.</p>";
+            return; 
+        }
+
+        let html = `<h2>Mercancía Total (${hInicio} - ${hFin})</h2>
+                    <table><tr><th>Producto</th><th style="text-align:right;">Total a Preparar</th></tr>`;
+        productos.forEach(p => {
+            let detalle = "";
+            if (totalesPeso[p]) {
+                let gramos = totalesPeso[p];
+                detalle = gramos >= 1000 ? (gramos/1000).toFixed(2) + " Kg" : gramos + " g";
+            } else {
+                detalle = totalesUnid[p] + " Raciones";
+            }
+            html += `<tr><td><strong>${p}</strong></td><td class="total-qty">${detalle}</td></tr>`;
+        });
+        document.getElementById('resultado').innerHTML = html + "</table>";
     }
-
-    let html = `<h2>👨‍🍳 Totales de Mercancía (${hInicio} - ${hFin})</h2>
-                <table>
-                    <tr>
-                        <th>Producto</th>
-                        <th>Preparación Total</th>
-                        <th>Estado</th>
-                    </tr>`;
-
-    productos.forEach(p => {
-        let detalle = "";
-        if (totalesPeso[p]) {
-            let gramos = totalesPeso[p];
-            // Si pasa de 1000g, lo mostramos en Kilos para que sea más legible
-            detalle = gramos >= 1000 ? (gramos/1000).toFixed(2) + " Kg" : gramos + " gr";
-        } else {
-            detalle = totalesUnid[p] + " Raciones";
-        }
-
-        html += `<tr>
-                    <td><strong>${p}</strong></td>
-                    <td class="total-qty">${detalle}</td>
-                    <td><input type="checkbox"> Listo</td>
-                </tr>`;
-    });
-
-    document.getElementById('resultado').innerHTML = html + "</table>";
-}
 </script>
 </body>
 </html>
