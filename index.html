@@ -138,30 +138,33 @@
         setTimeout(() => location.reload(), 2000);
     }
 
-    async function generarReporte() {
-        const hora = document.getElementById('hora').value;
-        const area = document.getElementById('reporte-area');
-        const tabla = document.getElementById('tabla-reporte');
+   async function generarReporte() {
+    const hora = document.getElementById('hora').value;
+    
+    // 1. Pedimos los datos al script
+    try {
+        const res = await fetch(`${scriptURL}?action=reporte&hora=${hora}`);
+        const datos = await res.json();
         
-        area.style.display = "block";
-        tabla.innerHTML = "<tr><td>Calculando cocina...</td></tr>";
+        if(Object.keys(datos).length === 0) {
+            alert("No hay pedidos para las " + hora);
+            return;
+        }
 
-        try {
-            const res = await fetch(`${scriptURL}?action=reporte&hora=${hora}`);
-            const datos = await res.json();
-            
-            if(Object.keys(datos).length === 0) {
-                tabla.innerHTML = "<tr><td>No hay pedidos para las " + hora + "</td></tr>";
-                return;
-            }
+        // 2. Guardamos los datos temporalmente para la otra página
+        localStorage.setItem('reporteCocina', JSON.stringify({
+            hora: hora,
+            items: datos,
+            fecha: new Date().toLocaleDateString()
+        }));
 
-            let html = `<tr><th>PRODUCTO</th><th>TOTAL</th></tr>`;
-            for(const [prod, cant] of Object.entries(datos)) {
-                html += `<tr><td style="text-align:left;">${prod}</td><td style="font-weight:bold;">${cant}</td></tr>`;
-            }
-            tabla.innerHTML = html;
-        } catch(e) { alert("Error al conectar"); }
+        // 3. Abrimos la nueva página (la crearemos a continuación)
+        window.open('reporte.html', '_blank');
+
+    } catch(e) { 
+        alert("Error al conectar con el servidor"); 
     }
+}
 </script>
 </body>
 </html>
