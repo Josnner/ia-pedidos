@@ -3,136 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TakeAway - Pedidos</title>
+    <title>Pedidos TakeAway</title>
     <style>
-        :root { --primary: #2c3e50; --secondary: #18bc9c; --danger: #e74c3c; --light: #f8f9fa; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: #d1d8e0; margin: 0; padding: 10px; }
-        .card { background: white; max-width: 500px; margin: auto; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); overflow: hidden; }
+        :root { --primary: #2c3e50; --secondary: #18bc9c; --light: #f8f9fa; }
+        body { font-family: sans-serif; background-color: #d1d8e0; padding: 10px; margin: 0; }
+        .card { background: white; max-width: 450px; margin: auto; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow: hidden; }
         .header { background: var(--primary); color: white; padding: 15px; text-align: center; }
-        .form-section { padding: 20px; border-bottom: 2px solid var(--light); }
-        label { display: block; font-size: 0.8em; font-weight: bold; color: #555; margin-top: 10px; }
-        input, select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .btn-add { background: var(--primary); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; }
-        .btn-send { background: linear-gradient(135deg, #18bc9c 0%, #118d76 100%); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 1.1em; font-weight: bold; cursor: pointer; margin-top: 20px; width: 100%; box-shadow: 0 4px 15px rgba(24, 188, 156, 0.3); }
-        .btn-send:disabled { background: #95a5a6; cursor: not-allowed; }
-        .carrito-container { padding: 20px; background: var(--light); }
-        .item-carrito { display: flex; justify-content: space-between; align-items: center; background: white; padding: 10px; margin-bottom: 8px; border-radius: 8px; border-left: 4px solid var(--secondary); font-size: 0.9em; }
-        .btn-remove { color: var(--danger); border: none; background: none; font-size: 1.2em; cursor: pointer; }
-        #success-msg { display: none; text-align: center; padding: 20px; color: var(--secondary); font-weight: bold; }
+        .form-section { padding: 15px; border-bottom: 1px solid #eee; }
+        label { font-size: 0.8em; font-weight: bold; color: #666; display: block; margin-top: 10px; }
+        input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        .btn-add { background: var(--primary); color: white; border: none; width: 100%; padding: 12px; border-radius: 6px; margin-top: 15px; cursor: pointer; font-weight: bold; }
+        .btn-send { background: var(--secondary); color: white; border: none; width: 100%; padding: 15px; border-radius: 6px; margin-top: 20px; cursor: pointer; font-size: 1.1em; font-weight: bold; }
+        .item-carrito { background: #f9f9f9; padding: 10px; margin-bottom: 5px; border-radius: 6px; display: flex; justify-content: space-between; font-size: 0.9em; }
+        #success-msg { display: none; color: var(--secondary); text-align: center; font-weight: bold; padding: 10px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <div class="header"><h1>🍱 Realizar Pedido</h1></div>
-    <form id="orderForm">
-        <div class="form-section">
-            <input type="text" id="nombre" placeholder="Tu Nombre *" required>
-            <input type="tel" id="telefono" placeholder="Tu Teléfono *" required>
-            <label>HORA DE RECOGIDA</label>
-            <select id="hora" required></select>
-        </div>
-        <div class="form-section">
-            <label>PRODUCTO</label>
-            <select id="producto"><option>Cargando productos...</option></select>
-            <div style="display: flex; gap: 10px;">
-                <div style="flex: 1;"><label>CANTIDAD</label><input type="number" id="cantidad" value="1" min="1"></div>
-                <div style="flex: 1;"><label>PESO/TAMAÑO</label>
-                    <select id="peso">
-                        <option value="250g">250g</option>
-                        <option value="500g">500g</option>
-                        <option value="Ración">Ración</option>
-                    </select>
-                </div>
+    <div class="header"><h2>🍱 Nuevo Pedido</h2></div>
+    <div class="form-section">
+        <input type="text" id="nombre" placeholder="Nombre completo *" required>
+        <input type="tel" id="telefono" placeholder="Teléfono de contacto *" required>
+        <label>HORA DE RECOGIDA</label>
+        <select id="hora"></select>
+    </div>
+
+    <div class="form-section">
+        <label>PRODUCTO</label>
+        <select id="producto"><option>Cargando lista...</option></select>
+        <div style="display:flex; gap:10px;">
+            <div style="flex:1"><label>CANT.</label><input type="number" id="cantidad" value="1" min="1"></div>
+            <div style="flex:2"><label>TAMAÑO</label>
+                <select id="peso">
+                    <option value="250g">250g</option>
+                    <option value="500g">500g</option>
+                    <option value="Ración">Ración</option>
+                </select>
             </div>
-            <label>OBSERVACIONES</label>
-            <input type="text" id="notas" placeholder="Ej: Sin cebolla...">
-            <button type="button" class="btn-add" onclick="agregarAlCarrito()">+ Añadir al pedido</button>
         </div>
-    </form>
-    <div class="carrito-container">
-        <h3>Resumen:</h3>
-        <div id="lista-carrito"></div>
+        <label>NOTAS / ALERGIAS</label>
+        <input type="text" id="notas" placeholder="Ej: Sin sal...">
+        <button type="button" class="btn-add" onclick="agregar()">+ Añadir al Resumen</button>
+    </div>
+
+    <div class="form-section">
+        <strong>Resumen del Pedido:</strong>
+        <div id="carrito-lista" style="margin-top:10px;"></div>
         <div id="success-msg">✅ ¡Pedido enviado correctamente!</div>
-        <button id="btnConfirmar" class="btn-send" onclick="enviarFinal()">Confirmar y Finalizar</button>
+        <button id="btnEnviar" class="btn-send" onclick="enviar()">Confirmar Pedido</button>
     </div>
 </div>
 
 <script>
     let carrito = [];
-    // REEMPLAZA ESTO CON TU URL DE APPS SCRIPT
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbwi8seCuF54IofjmhoZqDwK8mzOIpG71ARRIXpg-JDqNswccQbEDJJ9gEIhTeVCtAjJ/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbwMof5PcxnS4fBuSpPvVY-51VsEpiB4ibXd3AYlmt41r7APo511VgSEDx1cpP-mK06r/exec';
 
     function generarHoras() {
-        const select = document.getElementById('hora');
-        for (let h = 20; h <= 23; h++) {
-            for (let m = 0; m < 60; m += 15) {
-                if (h === 23 && m > 45) break;
-                let hh = h.toString().padStart(2, '0'), mm = m.toString().padStart(2, '0');
-                let op = new Option(`${hh}:${mm}`, `${hh}:${mm}`);
-                select.add(op);
+        const sel = document.getElementById('hora');
+        for(let h=20; h<=23; h++) {
+            for(let m=0; m<60; m+=15) {
+                if(h==23 && m>45) break;
+                let texto = `${h}:${m==0?'00':m}`;
+                sel.add(new Option(texto, texto));
             }
         }
     }
 
-    async function cargarProductos() {
+    async function cargarProds() {
         try {
             const res = await fetch(scriptURL);
-            const productos = await res.json();
-            const select = document.getElementById('producto');
-            select.innerHTML = "";
-            productos.forEach(p => select.add(new Option(p, p)));
-        } catch (e) { document.getElementById('producto').innerHTML = "<option>Error al cargar</option>"; }
+            const prods = await res.json();
+            const sel = document.getElementById('producto');
+            sel.innerHTML = "";
+            prods.forEach(p => sel.add(new Option(p, p)));
+        } catch(e) { console.error(e); }
     }
 
-    window.onload = () => { generarHoras(); cargarProductos(); };
+    window.onload = () => { generarHoras(); cargarProds(); };
 
-    function agregarAlCarrito() {
-        const producto = document.getElementById('producto').value;
-        const cantidad = document.getElementById('cantidad').value;
-        const peso = document.getElementById('peso').value;
-        const notas = document.getElementById('notas').value || "-";
-        carrito.push({ producto, cantidad, peso, notas });
-        renderizarCarrito();
+    function agregar() {
+        const p = document.getElementById('producto').value;
+        const c = document.getElementById('cantidad').value;
+        const t = document.getElementById('peso').value;
+        const n = document.getElementById('notas').value || "-";
+        carrito.push({p, c, t, n});
+        actualizarVista();
         document.getElementById('notas').value = "";
     }
 
-    function renderizarCarrito() {
-        const div = document.getElementById('lista-carrito');
-        div.innerHTML = carrito.length === 0 ? '<p>Vacío</p>' : '';
+    function actualizarVista() {
+        const lista = document.getElementById('carrito-lista');
+        lista.innerHTML = "";
         carrito.forEach((item, i) => {
-            div.innerHTML += `<div class="item-carrito">
-                <div><strong>${item.cantidad}x</strong> ${item.producto} (${item.peso})<br><small>${item.notas}</small></div>
-                <button class="btn-remove" onclick="carrito.splice(${i},1);renderizarCarrito()">✕</button>
+            lista.innerHTML += `<div class="item-carrito">
+                <span>${item.c}x ${item.p} (${item.t})</span>
+                <button onclick="carrito.splice(${i},1);actualizarVista()" style="border:none;background:none;color:red;cursor:pointer;">✕</button>
             </div>`;
         });
     }
 
-    async function enviarFinal() {
-        const nombre = document.getElementById('nombre').value.trim();
-        const telefono = document.getElementById('telefono').value.trim();
-        const hora = document.getElementById('hora').value;
+    async function enviar() {
+        const nom = document.getElementById('nombre').value.trim();
+        const tel = document.getElementById('telefono').value.trim();
+        const hor = document.getElementById('hora').value;
 
-        if (carrito.length === 0) return alert("Añade productos.");
-        if (!nombre || !telefono) return alert("Nombre y Teléfono son obligatorios.");
+        if(!nom || !tel || carrito.length === 0) return alert("Completa todos los campos y añade productos.");
 
-        const btn = document.getElementById('btnConfirmar');
-        btn.disabled = true; btn.innerText = "Enviando...";
+        const btn = document.getElementById('btnEnviar');
+        btn.disabled = true; btn.innerText = "Procesando...";
 
-        const datos = {
-            nombre, telefono, hora,
-            producto: carrito.map(i => i.producto).join(" | "),
-            cantidad: carrito.map(i => i.cantidad).join(" | "),
-            peso: carrito.map(i => i.peso).join(" | "),
-            notas: carrito.map(i => i.notas).join(" | ")
+        const payload = {
+            nombre: nom, telefono: tel, hora: hor,
+            producto: carrito.map(i => i.p).join(" | "),
+            cantidad: carrito.map(i => i.c).join(" | "),
+            peso: carrito.map(i => i.t).join(" | "),
+            notas: carrito.map(i => i.n).join(" | ")
         };
 
         try {
-            await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(datos) });
+            await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
             document.getElementById('success-msg').style.display = 'block';
             btn.style.display = 'none';
             setTimeout(() => location.reload(), 3000);
-        } catch (e) { alert("Error"); btn.disabled = false; }
+        } catch(e) { alert("Error de conexión"); btn.disabled = false; }
     }
 </script>
 </body>
