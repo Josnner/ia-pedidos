@@ -35,7 +35,7 @@
 <body>
 
 <div class="container">
-    <h1>📊 Centro de Control de Reportes</h1>
+    <h1>📊 Centro de Reportes</h1>
     
     <div class="menu-reportes">
         <div class="controles">
@@ -50,8 +50,8 @@
         </div>
         
         <div class="botones-grid">
-            <button class="btn btn-blue" onclick="ejecutarReporte('pedidos')">Reporte 1: Total Pedidos</button>
-            <button class="btn btn-green" onclick="ejecutarReporte('mercancia')">Reporte 2: Mercancía a Preparar</button>
+            <button class="btn btn-blue" onclick="ejecutarReporte('pedidos')">Nº de Pedidos por rango de horas</button><br>
+            <button class="btn btn-green" onclick="ejecutarReporte('mercancia')">Peso por producto por rango de horas</button>
         </div>
     </div>
 
@@ -134,33 +134,70 @@
         document.getElementById('resultado').innerHTML = html + "</table>";
     }
 
-    function generarReporteMercancia(data, hInicio, hFin) {
-        let totales = {}; // { "CHOCO (250g)": 5 }
-        data.forEach(fila => {
-            let hora = fila[2];
-            if (hora >= hInicio && hora <= hFin) {
-                let nombre = fila[3]; // Producto
-                let cant = parseFloat(fila[4]) || 0;
-                let peso = fila[5]; // Peso
-                let clave = `${nombre} [${peso}]`;
-                
-                totales[clave] = (totales[clave] || 0) + cant;
-            }
-        });
+function generarReporteMercancia(data, hInicio, hFin) {
+    let totalesPeso = {}; // Para sumar gramos/kilos totales
+    let totalesUnid = {}; // Para saber cuántos envases salen
 
-        const keys = Object.keys(totales).sort();
-        if(keys.length === 0) { 
-            document.getElementById('resultado').innerHTML = "<p>No hay mercancía para preparar en este rango.</p>";
-            return; 
+    data.forEach(fila => {
+        let hora = fila[2];
+        if (hora >= hInicio && hora <= hFin) {
+            let producto = fila[3]; // Columna D
+            let cantidad = parseFloat(fila[4]) || 0; // Columna E
+            let pesoTexto = fila[5].toString().toLowerCase(); // Columna F (ej: "250g" o "Ración")
+
+            // Extraer el valor numérico del peso (si dice "250g" saca 250)
+            let valorPeso = 0;
+            if (pesoTexto.includes("250")) valorPeso = 250;
+            else if (pesoTexto.includes("500")) valorPeso = 500;
+            else if (pesoTexto.includes("ración") || pesoTexto.includes("racion")) valorPeso = 1; // Las raciones las contamos por unidad
+
+            let clave = producto;
+            
+            // Si es por gramos, sumamos el peso total
+            if (valorPeso > 1) {
+                let totalGramos = cantidad * valorPeso;
+                totalesPeso[clave] = (totalesPeso[clave] || 0) + totalGramos;
+            } else {
+                // Si es ración, sumamos unidades
+                totalesUnid[clave] = (totalesUnid[clave] || 0) + cantidad;
+            }
+        }
+    });
+
+    const productos = [...new Set([...Object.keys(totalesPeso), ...Object.keys(totalesUnid)])].sort();
+    
+    if(productos.length === 0) { 
+        document.getElementById('resultado').innerHTML = "<p>No hay mercancía en este rango.</p>";
+        return; 
+    }
+
+    let html = `<h2>👨‍🍳 Totales de Mercancía (${hInicio} - ${hFin})</h2>
+                <table>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Preparación Total</th>
+                        <th>Estado</th>
+                    </tr>`;
+
+    productos.forEach(p => {
+        let detalle = "";
+        if (totalesPeso[p]) {
+            let gramos = totalesPeso[p];
+            // Si pasa de 1000g, lo mostramos en Kilos para que sea más legible
+            detalle = gramos >= 1000 ? (gramos/1000).toFixed(2) + " Kg" : gramos + " gr";
+        } else {
+            detalle = totalesUnid[p] + " Raciones";
         }
 
-        let html = `<h2>👨‍🍳 Mercancía Necesaria (${hInicio} - ${hFin})</h2>
-                    <table><tr><th>Producto y Formato</th><th>Cantidad Total</th></tr>`;
-        keys.forEach(k => {
-            html += `<tr><td>${k}</td><td class="total-qty">${totales[k]}</td></tr>`;
-        });
-        document.getElementById('resultado').innerHTML = html + "</table>";
-    }
+        html += `<tr>
+                    <td><strong>${p}</strong></td>
+                    <td class="total-qty">${detalle}</td>
+                    <td><input type="checkbox"> Listo</td>
+                </tr>`;
+    });
+
+    document.getElementById('resultado').innerHTML = html + "</table>";
+}
 </script>
 </body>
 </html>
