@@ -138,32 +138,9 @@
         setTimeout(() => location.reload(), 2000);
     }
 
-   async function generarReporte() {
-    const hora = document.getElementById('hora').value;
-    
-    // 1. Pedimos los datos al script
-    try {
-        const res = await fetch(`${scriptURL}?action=reporte&hora=${hora}`);
-        const datos = await res.json();
-        
-        if(Object.keys(datos).length === 0) {
-            alert("No hay pedidos para las " + hora);
-            return;
-        }
-
-        // 2. Guardamos los datos temporalmente para la otra página
-        localStorage.setItem('reporteCocina', JSON.stringify({
-            hora: hora,
-            items: datos,
-            fecha: new Date().toLocaleDateString()
-        }));
-
-        // 3. Abrimos la nueva página (la crearemos a continuación)
-        window.open('reporte.html', '_blank');
-
-    } catch(e) { 
-        alert("Error al conectar con el servidor"); 
-    }
+   function generarReporte() {
+    // Simplemente abrimos la central de reportes
+    window.open('reporte.html', '_blank');
 }
 </script>
 </body>
